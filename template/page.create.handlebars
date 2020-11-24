@@ -1,0 +1,47 @@
+/**
+* 定义日志访问视图组件。
+*
+* @author
+* @copyright © 2018 DouYu.tv
+* @license   LGPL-3.0
+*/
+
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+{{#if flow}}
+import { Connect } from '../../core/decorator';
+import {{componentName}}Flow from '../../flow/{{componentName}}/index';
+
+@Connect({{componentName}}Flow)
+{{/if}}
+export default class {{componentName}}View extends Component {
+    static propTypes = {
+        {{stateName}}: PropTypes.object,
+    };
+
+    static defaultProps = {
+        {{stateName}}: {},
+    };
+
+    componentDidMount() {
+        {{#if flow}}
+        setTimeout(() => {
+            this.flow.updateView();
+        }, 1000);
+        {{/if}}
+    }
+
+    render() {
+        const { {{stateName}} } = this.props;
+        return (
+            <div>
+                <div>
+                    初始数据：{ {{stateName}}.initData || ''}
+                </div>
+                <div>
+                    接口数据{ {{stateName}}.title || ''}
+                </div>
+            </div>
+        );
+    }
+}

@@ -1,0 +1,6 @@
+tmp
+node_modules
+lib
+dist
+coverage
+.idea/

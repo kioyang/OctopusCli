@@ -1,0 +1,142 @@
+/**
+* 定义编辑组件。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+import React from 'react'
+import { connect} from "dva"
+import { Input, Form, Row, Col, Button } from 'antd';
+import { Params } from '@/utils/index'
+
+@Form.create()
+@connect()
+class SearchView extends React.Component {
+  static propTypes = {};
+
+  static defaultProps = {};
+
+  // 离开页面时清空条件
+  componentWillUnmount() {
+    this.reset();
+  }
+
+  // 获取查询表单数据
+  getFormData() {
+    let obj = {};
+    let isValid = true;
+    // 校验搜索条件
+    this.form.validateFields((err, values) => {
+      if (err) {
+        isValid = false;
+        return false;
+      }
+      obj = Params.serializeSearchData(values);
+      delete obj.clear;
+      delete obj.search;
+      return true;
+    });
+
+    return {
+      values: obj,
+      isValid,
+    };
+  }
+
+  getList(query) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: '/fetch',
+      payload: query,
+    });
+  }
+
+  // 根据查询参数查询列表
+  search = () => {
+    const { values } = this.getFormData();
+    const keys = Object.keys(values);
+    for (let i = 0; i < keys.length;i++) {
+        if(values[keys[i]] === '') {
+        values[keys[i]] = undefined;
+        }
+    }
+    this.getList({
+      current: 1,
+      pageSize: 10,
+    });
+
+  }
+
+  // 清空查询条件
+  reset = () => {
+    this.form.resetFields();
+  }
+
+  render() {
+    const formItemLayout = {
+      labelCol: {
+        xxl: { span: 7 },
+        xl: { span: 8 },
+        lg: { span: 12 },
+      },
+      wrapperCol: {
+        xxl: { span: 17 },
+        xl: { span: 16 },
+        lg: { span: 12 },
+      },
+    };
+    const responsive = {
+      xxl: { span: 4 },
+      xl: { span: 4 },
+      lg: { span: 8 },
+      sm: { span: 24 },
+      xs: { span: 24 },
+    };
+    const formItemLayoutButton = {
+      labelCol: {
+        xxl: { span: 0 },
+        xl: { span: 0 },
+        lg: { span: 0 },
+      },
+      wrapperCol: {
+        xxl: { span: 24 },
+        xl: { span: 24 },
+        lg: { span: 24 },
+      },
+    };
+    const { form } = this.props;
+    const { getFieldDecorator } = form;
+    return (
+      <Form {...formItemLayout} onSubmit={this.handleSubmit}>
+        <Row>
+          <Col {...responsive}>
+            <Form.Item
+              label="名称"
+            >
+              {getFieldDecorator('name', {
+                rules: [
+                  {},
+                ],
+              })(
+                <Input />,
+              )}
+            </Form.Item>
+          </Col>
+          <Col {...responsive}>
+            <Form.Item {...formItemLayoutButton}>
+              <Button
+                type="primary"
+              >
+                查询
+              </Button>
+              <Button
+              >
+                重置
+              </Button>
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    );
+  }
+}
+export default SearchView;

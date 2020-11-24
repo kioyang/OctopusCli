@@ -1,0 +1,26 @@
+/**
+ * 定义表单配置。
+ * @author {{author}}@douyu.tv
+ * @date {{date}}
+ */
+import Field from '../Field';
+
+const responsive = {
+    xxl: { span: 24 },
+    xl: { span: 24 },
+    lg: { span: 24 },
+    sm: { span: 24 },
+    xs: { span: 24 },
+};
+class FormConfig {
+    getFormConfig() {
+        const formConfig = [
+            {
+                type: 'row', // 一个row一行&lt;Row&gt;
+                list: {{fields}},
+            }
+        ];
+        return formConfig;
+    }
+}
+export default FormConfig;

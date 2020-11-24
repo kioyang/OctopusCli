@@ -1,0 +1,320 @@
+/**
+* 定义组件列表界面。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+import React from 'react';
+import { Table, Button, Popconfirm, message, Modal } from 'antd';
+import {
+
+  ReloadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
+import { connect } from 'dva';
+import { deleteItem } from '@/services/{{dirName}}/index';
+import EditorView from './EditorView';
+import styles from './TableListView.less';
+import Ellipsis from '@/components/Ellipsis'
+
+const pageSize = 10;
+
+export const Mode = {
+  Default: '',
+  Add: 'add',
+  Edit: 'edit',
+};
+
+const transformZero = (value) => {
+  if (value === 0) {
+// 这里只是用于展示， 可以直接返回字符串0
+    return 0;
+  }
+  return value || '';
+};
+const ButtonGroup = Button.Group;
+
+@connect(({ {{flowKey}}, loading }) => {
+  return {
+    list: {{flowKey}}.list,
+    pagination: {{flowKey}}.pagination,
+    loading: loading.effects['{{flowKey}}/fetch'] || false,
+  };
+})
+class TableListView extends React.Component {
+  static propTypes = {};
+
+  static defaultProps = {};
+
+  // 初始化默认状态, 事件处理器绑定上下文
+  constructor(props) {
+    super(props);
+    // 初始化状态
+    this.state = {
+      showMode: '',
+      selectedRowKeys: [],
+    };
+    // 事件处理器绑定上下文
+    this.genOperations = this.genOperations.bind(this);
+    this.handleMode = this.handleMode.bind(this);
+  }
+
+  componentWillMount() {
+    this.getList({
+      current: 1,
+      pageSize: 10,
+    });
+  }
+
+  componentWillUnmount() {
+    this.clear();
+  }
+
+  get columns() {
+    const result = [
+    {{#tableItems}}
+    {
+      // {{keyName}}
+      title: '{{keyName}}',
+      dataIndex: '{{key}}',
+      key: '{{key}}',
+      sorter: (a, b) => { return a.{{key}} - b.{{key}};},
+      width: {{&widthFunc}},
+      {{&fixFunc}}
+      render: (text) => {
+        return (
+          <Ellipsis title={transformZero(text)}>
+            {transformZero(text)}
+          </Ellipsis>);
+      },
+    }, 
+    {{/tableItems}}
+    {
+      title: `操作`,
+      dataIndex: `operation`,
+      key: `operation`,
+      fixed: `right`,
+      width: 120,
+      render: this.genOperations,
+    }];
+    return result;
+  }
+
+  onSelectChange = (selectedRowKeys) => {
+    this.setState({ selectedRowKeys });
+  };
+
+  getList(query) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: '{{flowKey}}/fetch',
+      payload: query,
+    });
+  }
+
+  // 删除项目
+  delete = (id) => {
+    const { data = {}, keyword } = this.props;
+    const { pagination } = data;
+    deleteItem({ id }).then((response) => {
+      const res = response;
+      if (res && res.code === 0) {
+        message.success('删除成功，正在更新列表，请稍后...');
+        this.getList({
+          current: pagination.current,
+          pageSize: 10,
+          all: keyword,
+        });
+      } else {
+        message.error('删除失败，请重试');
+      }
+    });
+  };
+
+  // 筛选条件
+  handleTableChange = (pagination, filters, sorter) => {
+    const keys = Object.keys(filters);
+    const params = {
+      current: pagination.current,
+      pageSize: 10,
+    };
+    keys.forEach((item) => {
+      if (filters[item] && filters[item].length) {
+        params[item] = JSON.stringify(filters[item]);
+      }
+    });
+    if (sorter.field) {
+      params[sorter.field] = sorter.order === 'ascend' ? 'asc' : 'desc';
+    }
+    this.getList(params);
+  };
+
+  clear() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: '{{flowKey}}/clear',
+    });
+  }
+
+  // 四 block: 处理器
+  /**
+   * 详情弹窗
+   * @param record
+   */
+  handleMode({ showMode, record }) {
+    this.record = record;
+    this.setState({
+      showMode,
+    });
+  }
+
+  // 生成操作栏按钮
+  genOperations(text, record) {
+    return (
+      <>
+        <a
+          title={text}
+          onClick={() => {
+            this.handleMode({
+              showMode: Mode.Edit,
+              record,
+            });
+          }}
+        >
+          编辑
+        </a>&nbsp;
+        <Popconfirm
+          title="确定删除吗？"
+          okText="确定"
+          cancelText="取消"
+          onConfirm={() => {
+            this.delete(record.id);
+          }}
+        >
+          <a
+            title={text}
+          >
+            删除
+          </a>
+        </Popconfirm>
+      </>
+    );
+  }
+
+  // 生成分页配置
+  genPagination(total) {
+    const { pagination } = this.props;
+    return {
+      total,
+      pageSize,
+      current: pagination.current,
+      onChange: page => {
+        this.getList({
+          current: page,
+          pageSize: 10,
+        });
+      },
+    };
+  }
+
+  handleBatchOperation() {
+    return this;
+  }
+
+  render() {
+    const xWidth = this.columns.reduce((tol, item) => tol + item.width || 300, 0);
+    const scroll = { x: xWidth};
+    const { list = [], pagination = {}, loading } = this.props;
+    const { total = 0 } = pagination;
+    const { selectedRowKeys, showMode } = this.state;
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: this.onSelectChange,
+    };
+    return (
+      <div className={styles.tableView}>
+        {showMode !== '' ? (
+          <EditorView
+            mode={showMode}
+            record={this.record}
+            onClose={isOkEvent => {
+              if (isOkEvent) {
+                // 如果点了确定按钮 刷新一下表格
+                this.getList({
+                  current: pagination.current,
+                  pageSize: 10,
+                });
+              }
+              // 关闭编辑框
+              this.handleMode({
+                showMode: '',
+                record: { id: 0 },
+              });
+            }}
+          />
+        ) : null}
+        <div className={styles.btnGroup}>
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            className={styles.add}
+            onClick={() => {
+              this.handleMode({
+                showMode: Mode.Add,
+                record: { id: 0 },
+              });
+            }}
+          >
+            新增
+          </Button>
+          <ButtonGroup className={styles.rightBtn} onChange={this.handleBatchOperation}>
+            <Button
+              value="reload"
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                this.getList({
+                  current: 1,
+                  pageSize: 10,
+                });
+              }}
+            >刷新
+            </Button>
+            <Button
+              icon={<DeleteOutlined />}
+              onClick={() => {
+                if(selectedRowKeys.length) {
+                  Modal.confirm({
+                    title: '确认',
+                    content: `您确认删除id${selectedRowKeys}`,
+                    onOk: () => {
+                      this.delete(selectedRowKeys);
+                    },
+                  });
+                  return;
+                }
+                message.info('请先选择一项!');
+              }}
+            >批量删除
+            </Button>
+          </ButtonGroup>
+        </div>
+        <Table
+          bordered
+          loading={loading}
+          size="middle"
+          dataSource={list}
+          rowSelection={rowSelection}
+          columns={this.columns}
+          pagination={this.genPagination(total)}
+          rowKey={record => {
+            return record.id;
+          }}
+          scroll={scroll}
+          onChange={this.handleTableChange}
+        />
+      </div>
+    );
+  }
+}
+
+export default TableListView;

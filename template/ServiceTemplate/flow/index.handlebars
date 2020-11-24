@@ -1,0 +1,57 @@
+/**
+ * 定义{{dirName}}实例业务流组件。
+ *
+ * @author {{author}}@douyu.tv
+ * @date {{date}}
+ */
+import { map } from 'rxjs/operators';
+import { Flow } from '../../core/baseClass';
+import { FlowKey, Service } from '../../core/decorator';
+import {{dirName}}Service from '../../service/{{dirName}}/{{dirName}}Service';
+import Field from '../../pages/{{dirName}}/Field';
+
+@FlowKey('{{flowKey}}')
+export default class EditorFlow extends Flow {
+    @Service({{dirName}}Service) service;
+
+    /**
+     * 设置初始数据
+     */
+    initData = {{initData}};
+    /**
+     * 设置数据
+     * @param newData 新的数据
+     */
+    setData(newData) {
+        this.initData = Object.assign({}, this.initData, newData);
+    }
+        /**
+     * 获取列表数据
+     */
+    getList() {
+        this.dispatch({
+            loading: true,
+        });
+        return this.service
+            .getList(Object.assign({}, this.initData))
+            .pipe(map((res) =&gt; {
+                return res.data;
+            }))
+            .subscribe(
+                (data) =&gt; {
+                    this.dispatch({
+                        list: data.items,
+                        total: data.length,
+                        loading: false,
+                        page: this.initData.page,
+                    });
+                },
+                () =&gt; {
+                    this.dispatch({
+                        loading: false,
+                        list: [],
+                    });
+                },
+            );
+    }
+}

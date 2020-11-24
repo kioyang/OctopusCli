@@ -1,0 +1,22 @@
+/**
+* 定义请求方法。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+
+import React from 'react'
+import TableListView from './TableListView'
+import SearchView from './SearchView'
+import styles from './Table.less';
+
+class {{dirName}} extends React.PureComponent {
+  render() {
+    return (
+      <div className={styles.customTable}>
+        <SearchView />
+        <TableListView />
+      </div>
+    );
+  }
+}
+export default {{dirName}};

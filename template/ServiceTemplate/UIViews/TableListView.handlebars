@@ -1,0 +1,163 @@
+/**
+ * 定义列表界面组件。
+ * @author {{author}}-@{{company}}
+ * @date {{date}}
+ */
+import React from 'react';
+import { Table, Button } from 'antd';
+// import moment from 'moment';
+import PropTypes from 'prop-types';
+import Log from '../../util/Log';
+import EditorView from './EditorView';
+import Field from './Field';
+
+export const Mode = {
+    Default: '',
+    Add: 'add',
+    Edit: 'edit',
+};
+const middleButtonStyle = { clear: 'both', margin: '10px 0' };
+// const transferTime = (time) => {
+//     if (time <= 0) {
+//         return '';
+//     }
+//     const dateFormat = 'YYYY-MM-DD HH:mm:ss';
+//     return moment(time * 1000)
+//         .format(dateFormat);
+// };
+export default class TableListView extends React.Component {
+    static propTypes = {
+{{flowKey}}: PropTypes.object,
+        flow: PropTypes.object,
+    };
+    static defaultProps = {
+{{flowKey}}: {
+            list: [],
+            loading: false,
+        },
+        flow: {},
+    };
+    // 初始化默认状态, 事件处理器绑定上下文
+    constructor() {
+        super();
+        // 初始化状态
+        this.state = {
+            showMode: '',
+        };
+        // 事件处理器绑定上下文
+        this.genOperations = this.genOperations.bind(this);
+        this.handleMode = this.handleMode.bind(this);
+    }
+    // 一 block: 设置属性
+    // 设置表格显示栏目属性
+    get columns() {
+        const result = [{{columns}}];
+        return result;
+    }
+    // 二 block: 获取数据
+    // 获取table列表数据
+    getList() {
+        this.props.flow.getList();
+    }
+    // 三 block: 设置数据
+    setData(data) {
+        Log.debug('查询数据', data);
+        this.props.flow.setData(data);
+    }
+    // 四 block: 处理器
+    /**
+     * 详情弹窗
+     * @param record
+     */
+    handleMode({ showMode, record }) {
+        Log.debug('当前记录', record);
+        this.record = record;
+        this.setState({
+            showMode,
+        });
+    }
+    // 五 block: ui生成
+    // 生成操作栏按钮
+    genOperations(text, record) {
+        return (
+            &lt;a
+                title={text}
+                onClick={() =&gt; {
+                    this.handleMode({
+                        showMode: Mode.Edit,
+                        record,
+                    });
+                }}
+            &gt;
+                编辑
+            &lt;/a&gt;
+        );
+    }
+    // 生成分页配置
+    genPagination(total) {
+        const { flow, {{flowKey}} } = this.props;
+        Log.debug('当前页面数据', {{flowKey}});
+        return {
+            total,
+            showTotal: (totals) => { return `共计${totals}条数据`; },
+            pageSize: flow.initData.pageSize,
+            current: {{flowKey}}.page,
+            onChange: (page) =&gt; {
+                Log.debug('开始翻页');
+                this.setData({ page });
+                this.getList();
+            },
+        };
+    }
+    render() {
+        const { list = [], loading = false, total = 0 } = this.props.{{flowKey}};
+        return (
+            &lt;div&gt;
+                {
+                    this.state.showMode !== '' ?
+                        (
+                            &lt;EditorView
+                                mode={this.state.showMode}
+                                record={this.record}
+                                onClose={(isOkEvent) =&gt; {
+                                    Log.debug('关闭弹窗', isOkEvent);
+                                    if (isOkEvent) {
+                                        this.getList();
+                                    }
+                                    this.handleMode({
+                                        showMode: '',
+                                        record: { id: 0 },
+                                    });
+                                }}
+                            /&gt;
+                        ) : null
+                }
+                <div style={middleButtonStyle}>
+                    <Button
+                        icon=&quot;plus&quot;
+                        type=&quot;primary&quot;
+                        onClick={() => {
+                            this.handleMode({
+                            showMode: Mode.Add,
+                            record: { id: 0 },
+                            });
+                        }}
+                    >
+                        新增
+                    </Button>
+                </div>
+                &lt;Table
+                    loading={loading}
+                    size=&quot;middle&quot;
+                    dataSource={list}
+                    columns={this.columns}
+                    pagination={this.genPagination(total)}
+                    rowKey={(record) =&gt; {
+                        return record.id;
+                    }}
+                    scroll={{totalWidth}}
+                /&gt;
+            &lt;/div&gt;
+        );
+    }
+}

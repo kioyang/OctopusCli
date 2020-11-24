@@ -1,0 +1,23 @@
+/**
+* 定义{{componentName}}实例业务流Service。
+* 此处定义数据请求api
+* @author
+* @copyright © 2018 DouYu.tv
+* @license   LGPL-3.0
+*/
+// import { Remote } from '../util';
+import CommonService from '../CommonService';
+
+// const { get, post } = Remote;
+export default class {{componentName}}Service extends CommonService {
+    /**
+     * 模拟接口数据
+     */
+    updateView() {
+        return new Promise((resolve) => {
+            resolve({
+                title: 'Hello Dashboard',
+            });
+        });
+    }
+}

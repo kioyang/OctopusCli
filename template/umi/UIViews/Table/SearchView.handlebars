@@ -1,0 +1,158 @@
+/**
+* 定义请求方法。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+
+import React from 'react'
+import { connect } from 'dva'
+import { Input, Form, Row, Col, Button,Select,DatePicker } from 'antd';
+import styles from './SearchView.less';
+import Field from './Field.js';
+
+const formItemLayout = {
+  labelCol: {
+    xxl: { span: 8 },
+    xl: { span: 8 },
+    lg: { span: 12 },
+  },
+  wrapperCol: {
+    xxl: { span: 16 },
+    xl: { span: 16 },
+    lg: { span: 12 },
+  },
+};
+const responsive = {
+  xxl: { span: 6 },
+  xl: { span: 6 },
+  lg: { span: 8 },
+  sm: { span: 24 },
+  xs: { span: 24 },
+};
+const formItemLayoutButton = {
+  labelCol: {
+    xxl: { span: 0 },
+    xl: { span: 0 },
+    lg: { span: 0 },
+  },
+  wrapperCol: {
+    xxl: { span: 24 },
+    xl: { span: 24 },
+    lg: { span: 24 },
+  },
+};
+
+@connect()
+class SearchView extends React.Component {
+  static propTypes = {};
+
+  static defaultProps = {};
+
+  // 离开页面时清空条件
+  componentWillUnmount() {
+    this.reset();
+  }
+
+  // 获取查询表单数据
+  getFormData() {
+    let obj = {};
+    let isValid = true;
+    // 校验搜索条件
+    this.form.validateFields([],(err, values) => {
+      if (err) {
+        isValid = false;
+        return false;
+      }
+      obj = values;
+      delete obj.clear;
+      delete obj.search;
+      return true;
+    });
+
+    return {
+      values: obj,
+      isValid,
+    };
+  }
+
+  getList(query) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: '{{flowKey}}/fetch',
+      payload: query,
+    });
+  }
+
+  // 根据查询参数查询列表
+  search = () => {
+    console.log(this.getFormData());
+    const { values } = this.getFormData();
+    const keys = Object.keys(values);
+    for (let i = 0; i < keys.length; i++) {
+      if (values[keys[i]] === '') {
+        values[keys[i]] = undefined;
+      }
+    }
+    this.getList({
+      current: 1,
+      pageSize: 10,
+    });
+
+  }
+
+  // 清空查询条件
+  reset = () => {
+    console.log('重置')
+    this.form.resetFields();
+  }
+
+  render() {
+    const layout = window.innerWidth < 900 ? 'vertical' : 'horizontal';
+    return (
+      <Form
+        ref={(el) => {
+          this.form = el;
+        }}
+        className={styles.searchForm}
+        layout={layout}
+        {...formItemLayout}
+        onSubmit={this.handleSubmit}
+      >
+        <Row>
+             {{#searchItems}}
+          <Col {...responsive}>
+            <Form.Item
+              name={Field.{{key}}}
+              className={styles.formItem}
+              label="{{keyName}}"
+            >
+              {{&typeFunc}}
+            </Form.Item>
+          </Col>
+          {{/searchItems}}
+          <Col {...responsive}>
+            <Form.Item
+              {...formItemLayoutButton}
+              className={styles.formItem}
+            >
+              <Button
+                type="primary"
+                className={styles.search}
+                onClick={this.search}
+              >
+                查询
+              </Button>
+              <Button
+              onClick={this.reset}
+              className={styles.reset}
+              >
+                重置
+              </Button>
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    );
+  }
+}
+export default SearchView;

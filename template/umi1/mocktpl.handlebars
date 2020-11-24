@@ -1,0 +1,28 @@
+import Mock from &apos;mockjs&apos;
+import Field from &apos;@/pages/{{dirName}}/Table/Field&apos;
+
+const data = Mock.mock({
+    &apos;list|10-50&apos;: [{{item}}],
+});
+const { list } = data;
+const outData = list.slice(0, 20);
+const outList = {
+    code: 0,
+    data: outData,
+    length: list.length,
+};
+export default {
+    &apos;GET /{{flowKey}}/list&apos;: {
+        code: 0,
+        ...outList,
+    },
+    &apos;POST /{{flowKey}}/add&apos;: {
+        code: 0,
+        data: {},
+    },
+    &apos;POST /{{flowKey}}/edit&apos;: {
+        code: 0,
+        data: {},
+    },
+{{appendMethods}}
+};

@@ -1,0 +1,27 @@
+/**
+ * 定义{{dirName}}实例业务流Service。
+ * 此处定义数据请求api
+ * @author {{author}}@douyu.tv
+ * @date {{date}}
+ */
+import { Remote } from '../../util';
+import ApiConfig from './ApiConfig';
+
+const { get$, post$ } = Remote;
+export default class {{dirName}}Service {
+    /**
+     * 查询列表
+     * @param data
+     */
+    getList(data) {
+        return get$(ApiConfig.{{flowKey}}List, data);
+    }
+    // 新增
+    add(data) {
+        return post$(ApiConfig.add, data);
+    }
+    // 编辑
+    edit(data) {
+        return post$(ApiConfig.edit, data);
+    }
+}

@@ -1,0 +1,49 @@
+/**
+ * 定义表单配置。
+ * @author ${author}@douyu.tv
+ * @date {{date}}
+ */
+
+import { Button } from 'antd';
+import React from 'react';
+import Field from '../Field';
+
+const formItemLayout = {
+    labelCol: {
+        xxl: { span: 9 },
+        xl: { span: 10 },
+        lg: { span: 12 },
+    },
+    wrapperCol: {
+        xxl: { span: 15 },
+        xl: { span: 14 },
+        lg: { span: 12 },
+    },
+};
+const formItemLayoutButton = {
+    labelCol: {
+        xxl: { span: 0 },
+        xl: { span: 0 },
+        lg: { span: 0 },
+    },
+    wrapperCol: {
+        xxl: { span: 24 },
+        xl: { span: 24 },
+        lg: { span: 24 },
+    },
+};
+class SearchFormConfig {
+    constructor(context) {
+        this.context = context;
+    }
+    getFormConfig() {
+        const formConfig = [
+            {
+                type: 'row', // 一个row一行&lt;Row&gt;
+                list: {{fields}},
+            },
+        ];
+        return formConfig;
+    }
+}
+export default SearchFormConfig;

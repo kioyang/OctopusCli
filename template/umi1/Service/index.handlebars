@@ -1,0 +1,47 @@
+/**
+* 定义请求方法。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+
+import { stringify } from &apos;qs&apos;
+import request from &apos;@/utils/request&apos;
+import { pageSize } from '@/defaultSettings';
+import api from &apos;./apiConfig&apos;
+
+export async function getList(params) {
+  return request(`${api().list}?${stringify(params)}`).then(res => {
+    let data = {
+      list: res.data,
+      pagination: {
+        current: 1,
+        pageSize,
+        total: 0,
+      },
+    };
+    if (res && res.code === 0 || res.code === '0') {
+      data = {
+        list: res.data,
+        pagination: res.pagination || data.pagination,
+      };
+    }
+    return Promise.resolve(data);
+  });
+}
+
+export async function add(params) {
+  return request(`${api().add}?${stringify(params)}`).then(res => {
+    return Promise.resolve(res);
+  });
+}
+export async function edit(params) {
+  return request(`${api().edit}?${stringify(params)}`).then(res => {
+    return Promise.resolve(res);
+  });
+}
+
+export async function deleteItem(params) {
+  return request(`${api().delete}?${stringify(params)}`).then(res => {
+    return Promise.resolve(res);
+  });
+}

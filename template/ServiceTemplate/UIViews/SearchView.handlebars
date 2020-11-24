@@ -1,0 +1,79 @@
+/**
+ * 定义搜索表单界面组件。
+ * @author {{author}}-@{{company}}
+ * @date {{date}}
+ */
+import React from 'react';
+import PropTypes from 'prop-types';
+import ResponsiveForm from '../../components/ResponsiveForm/index';
+import FormConfig from './FormConfig/SearchFormConfig';
+import { Params } from '../../util';
+
+export default class SearchView extends React.Component {
+    static propTypes = {
+        flow: PropTypes.object,
+    };
+
+    static defaultProps = {
+        flow: {},
+    };
+
+    constructor() {
+        super();
+        this.formConfig = new FormConfig(this);
+        this.search = this.search.bind(this);
+        this.reset = this.reset.bind(this);
+    }
+    // 根据初始化参数查询列表
+    componentDidMount() {
+        this.search();
+    }
+    // 离开页面时清空条件
+    componentWillUnmount() {
+        this.reset();
+        this.props.flow.setData(this.getFormData().values);
+    }
+    // 获取查询表单数据
+    getFormData() {
+        let obj = {};
+        let isValid = true;
+        // 校验搜索条件
+        this.form.validateFields((err, values) =&gt; {
+            if (err) {
+                isValid = false;
+                return false;
+            }
+            obj = Params.serializeSearchData(values);
+            delete obj.clear;
+            delete obj.search;
+            return true;
+        });
+
+        return {
+            values: obj,
+            isValid,
+        };
+    }
+    // 根据查询参数查询列表
+    search() {
+        const { flow } = this.props;
+        const { values, isValid } = this.getFormData();
+        if (isValid) {
+            flow.setData(Object.assign({}, values, { page: 1}));
+            flow.getList();
+        }
+    }
+    // 清空查询条件
+    reset() {
+        this.form.resetFields();
+    }
+    render() {
+        return (
+            &lt;ResponsiveForm
+                FormData={this.formConfig.getFormConfig()}
+                ref={(form) =&gt; { this.form = form; }}
+                layoutType=&quot;inline&quot;
+            /&gt;
+        );
+    }
+}

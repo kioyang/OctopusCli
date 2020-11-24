@@ -1,0 +1,21 @@
+/**
+* 定义容器组件。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+ * 设置该页面的全局类名 该页面的全局配置
+*/
+import React from 'react'
+import TableListView from './TableListView'
+import SearchView from './SearchView'
+
+class StandardList extends React.PureComponent {
+  render() {
+    return (
+      <div className="custom-table-liu">
+        <SearchView />
+        <TableListView />
+      </div>
+    );
+  }
+}
+export default StandardList;

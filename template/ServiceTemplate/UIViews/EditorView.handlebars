@@ -1,0 +1,174 @@
+/**
+ * 定义编辑/新增界面组件。
+ * @author {{author}}-@{{company}}
+ * @date {{date}}
+ */
+
+import React from 'react';
+import { Button, Form, Modal } from 'antd';
+import PropTypes from 'prop-types';
+// import moment from 'moment';
+import Params from '../../util/Params';
+import { Connect } from '../../core/decorator';
+import EditorFlow from '../../flow/{{dirName}}/EditorFlow';
+import ResponsiveForm from '../../components/ResponsiveForm/index';
+import FormConfig from './FormConfig/formConfig';
+import Field from './Field';
+
+// const transferTime = (time) => {
+//     if (time <= 0) {
+//         return '';
+//     }
+//     const dateFormat = 'YYYY-MM-DD HH:mm:ss';
+//     return moment(time * 1000)
+//         .format(dateFormat);
+// };
+@Form.create()
+@Connect(EditorFlow)
+export default class EditorView extends React.Component {
+    static propTypes = {
+        flow: PropTypes.object,
+        onClose: PropTypes.func,
+        record: PropTypes.object,
+        mode: PropTypes.string,
+    };
+
+    static defaultProps = {
+        flow: {},
+        onClose: () =&gt; {
+        },
+        record: {},
+        mode: &apos;&apos;,
+    };
+
+    constructor() {
+        super();
+        {{stateStr}}
+        this.state = {
+            buttonLoading: false,
+        };
+        this.FormConfig = new FormConfig();
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+{{componentWillMount}}
+    componentDidMount() {
+        const { record } = this.props;
+        setTimeout(() =&gt; {
+            this.setFormData(record);
+        }, 100);
+    }
+    /**
+     * 设置文件列表
+     * @param data
+     */
+    // setTableData(data) {
+    //     this.setState({
+    //         list: data.list || [],
+    //         loading: false,
+    //     });
+    // }
+    setFormData(data) {
+        this.form.setFieldsValue({
+         {{setFormData}}
+        });
+    }
+    /**
+     * 获取表单数据
+     */
+    getFormData() {
+        let obj = {};
+        let isValid = true;
+        this.form.validateFields((err, values) =&gt; {
+            obj = Params.serializeSearchData(values);
+            return true;
+        });
+        return {
+            values: obj,
+            isValid,
+        };
+    }
+    finishEdit(onClose) {
+        this.setState({
+            buttonLoading: false,
+        }, () => {
+           if (typeof onClose === 'function') {
+               onClose();
+           }
+        });
+    }
+    handleSubmit() {
+        const { isValid, values } = this.getFormData();
+        const { flow, onClose, mode } = this.props;
+        if (isValid) {
+            this.setState({
+                buttonLoading: true,
+            });
+            flow[mode](values)
+                .subscribe({
+                    next: () => {
+                      this.finishEdit(onClose);
+                    },
+                    error: () => {
+                        this.finishEdit(onClose);
+                    },
+                });
+        }
+    }
+    /**
+     * 生成弹窗底部按钮
+     * @returns {*[]}
+     * @private
+     */
+    genFooter() {
+        // 是否有更新权限
+        const { onClose } = this.props;
+        const footer = [
+            &lt;Button
+                key=&quot;back&quot&quot;
+                size=&quot;large&quot;
+                onClick={() =&gt; {
+                    if (typeof onClose === 'function') {
+                        onClose();
+                    }
+                }}
+            &gt;
+                取消
+            &lt;/Button&gt;,
+            &lt;Button
+                    loading={this.state.buttonLoading}
+                    type=&quot;primary&quot;
+                    key=&quot;sure&quot;
+                    size=&quot;large&quot;
+                    onClick={this.handleSubmit}
+                &gt;
+                    确定
+                &lt;/Button&gt;
+        ];
+        return footer;
+    }
+    render() {
+        // 放在内部状态里, 减轻props的存储压力
+        // const { loading, list } = this.state;
+        const { onClose, mode } = this.props;
+        const title = mode === 'edit' ? '编辑' : '新增';
+        return (
+            &lt;div&gt;
+                &lt;Modal
+                    visible
+                    maskClosable={false}
+                    confirmLoading={false}
+                    title={title}
+                    footer={this.genFooter()}
+                    onCancel={() =&gt; {
+                        if (typeof onClose === 'function') {
+                            onClose();
+                        }
+                    }}
+                &gt;
+                    &lt;ResponsiveForm FormData={this.FormConfig.getFormConfig()} ref={(form) =&gt; { this.form = form; }} /&gt;
+{{tableStr}}
+                &lt;/Modal&gt;
+            &lt;/div&gt;
+        );
+    }
+}

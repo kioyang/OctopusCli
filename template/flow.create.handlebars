@@ -1,0 +1,31 @@
+/**
+* 定义{{componentName}}实例业务流组件。
+*
+* @author
+* @copyright © 2018 DouYu.tv
+* @license   LGPL-3.0
+*/
+
+import { Flow } from '../../core/baseClass';
+import { FlowKey, Service } from '../../core/decorator';
+import {{componentName}}Service from '../../service/{{componentName}}';
+
+@FlowKey('{{stateName}}')
+export default class {{componentName}}Flow extends Flow {
+    @Service({{componentName}}Service) service;
+
+    /**
+     * 设置初始数据
+     */
+    initData = {
+        initData: 'I am initData',
+    };
+
+    updateView() {
+        this.service.updateView().then(() => {
+            this.dispatch({
+                title: 'Hello Dashboard',
+            });
+        });
+    }
+}

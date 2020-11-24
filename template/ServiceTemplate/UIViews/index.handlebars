@@ -1,0 +1,31 @@
+/**
+ * 定义容器。
+ * @author {{author}}-@{{company}}
+ * @date {{date}}
+ */
+import React from 'react';
+import { Breadcrumb } from 'antd';
+import { Connect } from '../../core/decorator';
+import {{dirName}}Flow from '../../flow/{{dirName}}/IndexFlow';
+import SearchView from './SearchView';
+import TableListView from './TableListView';
+
+@Connect({{dirName}}Flow)
+export default class {{dirName}} extends React.Component {
+    paddingStyle = { padding: 10 };
+    marginStyle = { margin: '10px 0' };
+    render() {
+        return (
+            &lt;div style={this.paddingStyle}&gt;
+                <Breadcrumb>
+                    <Breadcrumb.Item>xxx</Breadcrumb.Item>
+                    <Breadcrumb.Item>xxx</Breadcrumb.Item>
+                </Breadcrumb>
+                <div style={this.marginStyle}>
+                    &lt;SearchView {...this.props} /&gt;
+                </div>
+                &lt;TableListView {...this.props} /&gt;
+            &lt;/div&gt;
+        );
+    }
+}
