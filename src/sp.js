@@ -90,12 +90,14 @@ class Generate {
     }
     generateApiConfig = (config) => {
         const { dirName, flowKey, author, baseDir } = config;
+        const { apiUrl = `${flowKey}/list`} = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
             dirName,
             flowKey,
             author,
             date,
+            apiUrl: apiUrl,
             company: company,
             sourcePath: baseDir,
             filePath: `/src/services/${dirName}/apiConfig.js`,
