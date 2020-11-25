@@ -10,28 +10,22 @@ import api from './apiConfig'
 
 const pageSize = 10;
 
-export async function getList(params) {
-  params.page = params.current;
-  params.limit = params.pageSize;
-  delete params.current;
-  delete params.pageSize;
-  return request(`${api().list}?${stringify(params)}`).then((res = { content}) => {
-    let data = {
-      list: res.content && res.content.list,
-      pagination: {
-        current: params.page,
-        pageSize,
-        total: 0,
-      },
-    };
-    if (res && res.code === 0 || res.code === '0') {
-      data = {
-        list: res.content && res.content.list,
-        pagination: res.pagination || data.pagination,
-      };
-    }
-    return Promise.resolve(data);
-  });
+export async function getList(params) {
+  params.page = params.current;
+  params.limit = params.pageSize;
+  delete params.current;
+  delete params.pageSize;
+  return request(`${api().list}?${stringify(params)}`).then((res = { content }) => {
+    const data = {
+      list: res.content && res.content.list,
+      pagination: {
+        current: params.page,
+        pageSize,
+        total: res.content && res.content.total,
+      },
+    };
+    return Promise.resolve(data);
+  });
 }
 
 export async function add(params) {

@@ -90,7 +90,7 @@ class Generate {
     }
     generateApiConfig = (config) => {
         const { dirName, flowKey, author, baseDir } = config;
-        const { apiUrl = `${flowKey}/list`} = config;
+        const { apiUrl = `${flowKey}/list` } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
             dirName,
@@ -329,6 +329,7 @@ class Generate {
             company: company,
             typeFunc: function () {
                 var type = this.type || 'input';
+                var keyName = this.keyName;
                 var result = '<Input />';
                 switch (type) {
                     case 'input':
@@ -337,11 +338,14 @@ class Generate {
                     case 'datetime':
                         result = '<DatePicker style={{width: "100%"}} />';
                         break;
-                        case 'select':
-                            result = '<Select />';
-                            break;
-                        default:
-                            result = '<Date />';
+                    case 'select':
+                        result = '<Select />';
+                        break;
+                    default:
+                        result = '<Date />';
+                }
+                if(keyName.includes('单据状态')) {
+                    result = '<BillstatusSelect />';
                 }
                 return result;
             },
@@ -365,7 +369,7 @@ class Generate {
             author,
             flowKey,
             date,
-            widthFunc: function() {
+            widthFunc: function () {
                 const item = this;
                 let minWidth = +item.keyName.length * 30 || 40;
                 if (item.keyName.includes('日期') || item.keyName.includes('时间') || item.keyName.length < 3) {
@@ -373,12 +377,18 @@ class Generate {
                         minWidth = 80;
                     }
                 }
-                if(item.keyName.includes('单据编号')) {
-                    minWidth = 160;
+                if (item.keyName.includes('单据编号')) {
+                    minWidth = 180;
+                }
+                if(item.keyName.includes('备注')) {
+                    minWidth = 200;
+                }
+                if(item.keyName.includes('配送')) {
+                    minWidth = 200;
                 }
                 return minWidth;
             },
-            fixFunc: function() {
+            fixFunc: function () {
                 const item = this;
                 let shouldFix = false;
                 let countCol = tableColumns.length;
@@ -391,6 +401,20 @@ class Generate {
                     fixString = 'fixed:\'left\'';
                 }
                 return fixString;
+            },
+            renderFunc: function () {
+                const item = this;
+                if (item.keyName.includes('单据状态')) {
+                    return '<BillStatus status={value} />';
+                }
+                if (item.keyName.includes('单据编号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+                return `<Ellipsis title={transformZero(value)}>
+                {transformZero(value)}
+              </Ellipsis>`
             },
             company: company,
             templatePath: 'umi/UIViews/Table/TableListView',

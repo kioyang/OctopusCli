@@ -16,6 +16,8 @@ import { deleteItem } from '@/services/{{dirName}}/index';
 import EditorView from './EditorView';
 import styles from './TableListView.less';
 import Ellipsis from '@/components/Ellipsis'
+import BillStatus from '@/components/BillStatus';
+import AuthorizedButton from '@/components/AuthorizedButton';
 
 const pageSize = 10;
 
@@ -82,11 +84,10 @@ class TableListView extends React.Component {
       sorter: (a, b) => { return a.{{key}} - b.{{key}};},
       width: {{&widthFunc}},
       {{&fixFunc}}
-      render: (text) => {
+      render: (value) => {
         return (
-          <Ellipsis title={transformZero(text)}>
-            {transformZero(text)}
-          </Ellipsis>);
+          {{&renderFunc}}
+        );
       },
     }, 
     {{/tableItems}}
@@ -173,17 +174,11 @@ class TableListView extends React.Component {
   genOperations(text, record) {
     return (
       <>
-        <a
-          title={text}
-          onClick={() => {
-            this.handleMode({
-              showMode: Mode.Edit,
-              record,
-            });
-          }}
-        >
-          编辑
-        </a>&nbsp;
+    <AuthorizedButton
+          title='编辑'
+          permissions={[1, 3, 5]}
+          permissionKey={+record.billstatus}
+        />
         <Popconfirm
           title="确定删除吗？"
           okText="确定"

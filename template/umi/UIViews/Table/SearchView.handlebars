@@ -9,6 +9,7 @@ import { connect } from 'dva'
 import { Input, Form, Row, Col, Button,Select,DatePicker } from 'antd';
 import styles from './SearchView.less';
 import Field from './Field.js';
+import BillstatusSelect from '@/components/BillstatusSelect'
 
 const formItemLayout = {
   labelCol: {
@@ -53,26 +54,10 @@ class SearchView extends React.Component {
     this.reset();
   }
 
+
   // 获取查询表单数据
   getFormData() {
-    let obj = {};
-    let isValid = true;
-    // 校验搜索条件
-    this.form.validateFields([],(err, values) => {
-      if (err) {
-        isValid = false;
-        return false;
-      }
-      obj = values;
-      delete obj.clear;
-      delete obj.search;
-      return true;
-    });
-
-    return {
-      values: obj,
-      isValid,
-    };
+    return this.form.validateFields();
   }
 
   getList(query) {
@@ -83,31 +68,40 @@ class SearchView extends React.Component {
     });
   }
 
+
   // 根据查询参数查询列表
   search = () => {
-    console.log(this.getFormData());
-    const { values } = this.getFormData();
-    const keys = Object.keys(values);
-    for (let i = 0; i < keys.length; i++) {
-      if (values[keys[i]] === '') {
-        values[keys[i]] = undefined;
-      }
-    }
-    this.getList({
-      current: 1,
-      pageSize: 10,
-    });
+    this.getFormData()
+      .then((values) => {
+        const keys = Object.keys(values);
+        const newValues = {};
+        for (let i = 0; i < keys.length; i++) {
+          if (values[keys[i]] === '') {
+            newValues[keys[i]] = undefined;
+          } else {
+            newValues[keys[i]] = values[keys[i]];
+          }
+        }
+        this.getList({
+          current: 1,
+          pageSize: 10,
+          ...newValues,
+        });
+      })
+      .catch((errors) => {
+        // console.log(errors, 'formvalidate');
+      })
 
   }
 
   // 清空查询条件
   reset = () => {
-    console.log('重置')
     this.form.resetFields();
+    this.search();
   }
 
   render() {
-    const layout = window.innerWidth < 900 ? 'vertical' : 'horizontal';
+    const layout = window.innerWidth < 866 ? 'vertical' : 'horizontal';
     return (
       <Form
         ref={(el) => {
