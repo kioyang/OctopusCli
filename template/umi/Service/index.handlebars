@@ -7,6 +7,7 @@
 import { stringify } from 'qs'
 import request from '@/utils/request'
 import api from './apiConfig'
+import Base64Request from '@/utils/Base64Request'
 
 const pageSize = 10;
 
@@ -40,7 +41,7 @@ export async function edit(params) {
 }
 
 export async function deleteItem(params) {
-  return request(`${api().delete}?${stringify(params)}`).then(res => {
-    return Promise.resolve(res);
+  return Base64Request(`${api().delete}`, {
+    body: params
   });
 }

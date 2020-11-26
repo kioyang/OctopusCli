@@ -90,7 +90,7 @@ class Generate {
     }
     generateApiConfig = (config) => {
         const { dirName, flowKey, author, baseDir } = config;
-        const { apiUrl = `${flowKey}/list` } = config;
+        const { apiUrl = `${flowKey}/list`,deleteUrl = `${flowKey}/list` } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
             dirName,
@@ -98,6 +98,7 @@ class Generate {
             author,
             date,
             apiUrl: apiUrl,
+            deleteUrl,
             company: company,
             sourcePath: baseDir,
             filePath: `/src/services/${dirName}/apiConfig.js`,
@@ -240,6 +241,7 @@ class Generate {
         const listItems = tableColumns && tableColumns.map((option) => {
             const field = option.key;
             const type = option.type;
+            if(field) {
             if (field.includes('status') || field.includes('Status')) {
                 return { key: type, create: '[0,1]', prop: `[\`\${Field.${field}}|+1\`]` }
             }
@@ -250,6 +252,10 @@ class Generate {
             if (field.includes('Num') || field.includes('Price') || field.includes('num') || field.includes('id') || field.includes('Id') || field.includes('number') || field.includes('code') || field.includes('Code') || field.includes('Number') || field.includes('Amount')) {
                 return { key: type, create: 1, prop: `[\`\${Field.${field}|+1}\`]` }
             }
+        }
+        if(!field) {
+            return { key: type, create: '@cname', prop: `dddd` }
+        }
             return { key: type, create: '@cname', prop: `[\`\${Field.${field}}\`]` }
         });
         this.createFile({
@@ -374,7 +380,7 @@ class Generate {
                 let minWidth = +item.keyName.length * 30 || 40;
                 if (item.keyName.includes('日期') || item.keyName.includes('时间') || item.keyName.length < 3) {
                     if (minWidth < 80) {
-                        minWidth = 80;
+                        minWidth = 120;
                     }
                 }
                 if (item.keyName.includes('单据编号')) {
@@ -388,7 +394,8 @@ class Generate {
                 }
                 return minWidth;
             },
-            fixFunc: function () {
+            fixFunc: function (index = 0) {
+                // console.log()
                 const item = this;
                 let shouldFix = false;
                 let countCol = tableColumns.length;
@@ -397,9 +404,9 @@ class Generate {
                     countCol = countCol - 12;
                 }
                 let fixString = '';
-                if (shouldFix && index < countCol - 1) {
-                    fixString = 'fixed:\'left\'';
-                }
+                // if (shouldFix && index < countCol - 1) {
+                //     fixString = 'fixed:\'left\',';
+                // }
                 return fixString;
             },
             renderFunc: function () {
