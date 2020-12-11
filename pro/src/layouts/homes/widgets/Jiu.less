@@ -1,0 +1,17 @@
+.jiu {
+    border-top: 1px solid #111;
+    border-left: 1px solid #111;
+    .jiuCard {
+        float:left;
+        box-sizing: border-box;
+        font-size: 0;
+        background:#eee;
+        text-align: center;
+        min-height: 100px;
+        border-right: 1px solid #111;
+        border-bottom:1px solid #111;
+    }
+    &::after {
+        content:"."; display:block; height:0; visibility:hidden; clear:both;
+    }
+}

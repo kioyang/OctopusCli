@@ -1,0 +1,22 @@
+const field = {
+        commoditycode: 'commoditycode',
+        commodityNo: 'commodityNo',
+        commodityName: 'commodityName',
+        availablestockqty: 'availablestockqty',
+        qty: 'qty',
+        qctypeName: 'qctypeName',
+        productiondate: 'productiondate',
+        commodityCategoryName: 'commodityCategoryName',
+        commoditySpecification: 'commoditySpecification',
+        contractid: 'contractid',
+        cargoAge: 'cargoAge',
+        expirationdate: 'expirationdate',
+        containerno: 'containerno',
+        ser: 'ser',
+        storeway: 'storeway',
+        huoguo: 'huoguo',
+        btd: 'btd',
+        dfe4: 'dfe4',
+        qtype: 'qtype',
+};
+export default field;

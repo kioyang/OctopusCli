@@ -1,0 +1,81 @@
+@basecolor: #EBB76E;
+.about {
+    background: #F4F4F4;
+    h3 {
+        margin-bottom: 0;
+    }
+    .centerblock {
+        width:86%;
+        height: 800px;
+        float:left;
+        background: #fff;
+        box-sizing: border-box;
+        .leftMenu {
+            float: left;
+            width: 20%;
+            height: 800px;
+            margin-top: 24px;
+            ul {
+                li {
+                    padding: 8px 12px;
+                    cursor:pointer;
+                    position: relative;
+                    &:hover {
+                        color: lighten(@basecolor, 10%);
+                        &::after {
+                            content: "";
+                            width: 12px;
+                            height: 12px;
+                            border:  solid lighten(@basecolor,10%);
+                            border-width: 1px 0 0 1px;
+                            transform: translate(-50%, -50%) rotate(-225deg);
+                            position: absolute;
+                            left: 50%;
+                            top: 50%;
+                        }
+                    }
+                    &::after {
+                        content: "";
+                        width: 12px;
+                        height: 12px;
+                        border:  solid #111;
+                        border-width: 1px 0 0 1px;
+                        transform: translate(-50%, -50%) rotate(-225deg);
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                    }
+                }
+                .active {
+                    color: @basecolor;
+                    &::after {
+                        content: "";
+                        width: 12px;
+                        height: 12px;
+                        border:  solid @basecolor;
+                        border-width: 1px 0 0 1px;
+                        transform: translate(-50%, -50%) rotate(-225deg);
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                    }
+                }
+            }
+        }
+        .rightMenu {
+            float:left;
+            width: 80%;
+            background: #F4F4F4;
+            height: 800px;
+        }
+    }
+    .leftblock {
+        float:left;
+        width:7%;
+        height: 800px;
+        background-color: #fff;
+    }
+    &::after {
+        content:"."; display:block; height:0; visibility:hidden; clear:both;
+    }
+}

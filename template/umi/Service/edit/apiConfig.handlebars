@@ -1,0 +1,18 @@
+/**
+* api地址生成。
+* @author {{author}}-@{{company}}
+* @date {{date}}
+*/
+const api = (options) => {
+  // const { id } = options;
+  return {
+    list: `{{&apiUrl}}`,
+    add: `/{{flowKey}}/add`,
+    edit: `/{{flowKey}}/edit`,
+    delete: `{{&deleteUrl}}`,
+    saveService: `{{&editUrl}}`,
+      submitService: `{{&editUrl}}`,
+    detailUrl:`{{&detailUrl}}`,
+  };
+};
+export default api;

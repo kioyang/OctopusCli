@@ -7,26 +7,24 @@ import ProLayout, {
   MenuDataItem,
   BasicLayoutProps as ProLayoutProps,
   Settings,
-  DefaultFooter,
 } from '@ant-design/pro-layout';
+import CustomFooter from '@/components/CustomFooter';
 import React, { useEffect } from 'react';
 import { Link, useIntl, connect, Dispatch, history } from 'umi';
-import { GithubOutlined } from '@ant-design/icons';
 import { Result, Button } from 'antd';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { ConnectState } from '@/models/connect';
 import { getAuthorityFromRouter } from '@/utils/utils';
-import logo from '../assets/logo.svg';
-
+import logo from '../assets/logo.png';
 const noMatch = (
   <Result
     status={403}
     title="403"
-    subTitle="Sorry, you are not authorized to access this page."
+    subTitle="抱歉，您没有访问该页面的权限"
     extra={
       <Button type="primary">
-        <Link to="/user/login">Go Login</Link>
+        <Link to="/user/login">去登录</Link>
       </Button>
     }
   />
@@ -58,32 +56,6 @@ const menuDataRender = (menuList: MenuDataItem[]): MenuDataItem[] =>
     };
     return Authorized.check(item.authority, localItem, null) as MenuDataItem;
   });
-
-const defaultFooterDom = (
-  <DefaultFooter
-    copyright={`${new Date().getFullYear()} 蚂蚁金服体验技术部出品`}
-    links={[
-      {
-        key: 'Ant Design Pro',
-        title: 'Ant Design Pro',
-        href: 'https://pro.ant.design',
-        blankTarget: true,
-      },
-      {
-        key: 'github',
-        title: <GithubOutlined />,
-        href: 'https://github.com/ant-design/ant-design-pro',
-        blankTarget: true,
-      },
-      {
-        key: 'Ant Design',
-        title: 'Ant Design',
-        href: 'https://ant.design',
-        blankTarget: true,
-      },
-    ]}
-  />
-);
 
 const BasicLayout: React.FC<BasicLayoutProps> = (props) => {
   const {
@@ -122,13 +94,14 @@ const BasicLayout: React.FC<BasicLayoutProps> = (props) => {
     authority: undefined,
   };
   const { formatMessage } = useIntl();
-
   return (
     <ProLayout
       logo={logo}
+      locale="zh-CN"
+      contentStyle={{margin:0,padding:0,boxSizing:'border-box',height: 'calc(100vh - 77.6px)'}}
       formatMessage={formatMessage}
       onCollapse={handleMenuCollapse}
-      onMenuHeaderClick={() => history.push('/')}
+      onMenuHeaderClick={() => history.push('/workstation')}
       menuItemRender={(menuItemProps, defaultDom) => {
         if (menuItemProps.isUrl || !menuItemProps.path) {
           return defaultDom;
@@ -150,7 +123,9 @@ const BasicLayout: React.FC<BasicLayoutProps> = (props) => {
           <span>{route.breadcrumbName}</span>
         );
       }}
-      footerRender={() => defaultFooterDom}
+      footerRender={() => {
+        return <CustomFooter />
+      }}
       menuDataRender={menuDataRender}
       rightContentRender={() => <RightContent />}
       {...props}

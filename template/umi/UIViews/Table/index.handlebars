@@ -5,6 +5,9 @@
 */
 
 import React from 'react'
+import ResponsivePage from '@/components/ResponsivePage'
+import ResponsiveBlock from '@/components/ResponsiveBlock'
+
 import TableListView from './TableListView'
 import SearchView from './SearchView'
 import styles from './Table.less';
@@ -12,10 +15,17 @@ import styles from './Table.less';
 class {{dirName}} extends React.PureComponent {
   render() {
     return (
-      <div className={styles.customTable}>
-        <SearchView />
-        <TableListView />
-      </div>
+        <ResponsivePage>
+        <ResponsiveBlock
+          height={80}
+        >
+          <SearchView {...this.props} />
+        </ResponsiveBlock>
+        <ResponsiveBlock
+        >
+          <TableListView {...this.props} />
+        </ResponsiveBlock>
+      </ResponsivePage>
     );
   }
 }

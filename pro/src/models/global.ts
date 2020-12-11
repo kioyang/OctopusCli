@@ -1,8 +1,9 @@
 import { Subscription, Reducer, Effect } from 'umi';
 
 import { NoticeIconData } from '@/components/NoticeIcon';
-import { queryNotices } from '@/services/user';
+import { queryNotices,getSessionUser } from '@/services/user';
 import { ConnectState } from './connect.d';
+import { GlobalDensity } from '@/config/style'
 
 export interface NoticeItem extends NoticeIconData {
   id: string;
@@ -13,6 +14,7 @@ export interface NoticeItem extends NoticeIconData {
 export interface GlobalModelState {
   collapsed: boolean;
   notices: NoticeItem[];
+  density:number;
 }
 
 export interface GlobalModelType {
@@ -22,6 +24,7 @@ export interface GlobalModelType {
     fetchNotices: Effect;
     clearNotices: Effect;
     changeNoticeReadState: Effect;
+    fetchSessionUser: Effect;
   };
   reducers: {
     changeLayoutCollapsed: Reducer<GlobalModelState>;
@@ -37,9 +40,19 @@ const GlobalModel: GlobalModelType = {
   state: {
     collapsed: false,
     notices: [],
+    density: parseInt(localStorage.getItem('ps-density') || 'undefined') || GlobalDensity.normal,
   },
-
   effects: {
+    *fetchSessionUser({payload}, { call,put}) {
+      const response = yield call(getSessionUser);
+      yield put({
+        type:'save',
+        payload: {
+          userInfo: response.content,
+        }
+      })
+      return response;
+    },
     *fetchNotices(_, { call, put, select }) {
       const data = yield call(queryNotices);
       yield put({
@@ -101,6 +114,12 @@ const GlobalModel: GlobalModelType = {
   },
 
   reducers: {
+    save(state, { payload }): GlobalModelState {
+      return {
+        ...state,
+        ...payload,
+      };
+    },
     changeLayoutCollapsed(state = { notices: [], collapsed: true }, { payload }): GlobalModelState {
       return {
         ...state,
@@ -124,9 +143,21 @@ const GlobalModel: GlobalModelType = {
   },
 
   subscriptions: {
-    setup({ history }): void {
+    setup({ history,dispatch }): void {
       // Subscribe history(url) change, trigger `load` action if pathname is `/`
       history.listen(({ pathname, search }): void => {
+        if(!pathname.includes('home')) {
+        dispatch({
+          type: 'fetchSessionUser'
+        })
+        .then((res) => {
+          if(!res.success && !pathname.includes('home')) {
+            dispatch({
+              type: 'login/logout'
+            });
+          }
+        })
+      }
         if (typeof window.ga !== 'undefined') {
           window.ga('send', 'pageview', pathname + search);
         }

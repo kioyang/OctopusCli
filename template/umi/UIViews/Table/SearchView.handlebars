@@ -11,37 +11,13 @@ import styles from './SearchView.less';
 import Field from './Field.js';
 import BillstatusSelect from '@/components/BillstatusSelect'
 
-const formItemLayout = {
-  labelCol: {
-    xxl: { span: 8 },
-    xl: { span: 8 },
-    lg: { span: 12 },
-  },
-  wrapperCol: {
-    xxl: { span: 16 },
-    xl: { span: 16 },
-    lg: { span: 12 },
-  },
-};
-const responsive = {
-  xxl: { span: 6 },
-  xl: { span: 12 },
-  lg: { span: 12 },
-  sm: { span: 24 },
-  xs: { span: 24 },
-};
-const formItemLayoutButton = {
-  labelCol: {
-    xxl: { span: 0 },
-    xl: { span: 0 },
-    lg: { span: 0 },
-  },
-  wrapperCol: {
-    xxl: { span: 24 },
-    xl: { span: 24 },
-    lg: { span: 24 },
-  },
-};
+import { FormResponsive } from '@/config/style'
+
+const ResponsiveField ={
+{{#responsiveField}}
+[Field.{{field}}]: { name: '{{name}}',offset: {{offset}}},
+{{/responsiveField}}
+}
 
 @connect()
 class SearchView extends React.Component {
@@ -102,6 +78,10 @@ class SearchView extends React.Component {
 
   render() {
     const layout = window.innerWidth < 866 ? 'vertical' : 'horizontal';
+    const formResponsive = FormResponsive.generate({
+      rows: 4,
+      fields: ResponsiveField,
+    });
     return (
       <Form
         ref={(el) => {
@@ -109,12 +89,15 @@ class SearchView extends React.Component {
         }}
         className={styles.searchForm}
         layout={layout}
-        {...formItemLayout}
+            onValuesChange={() => {
+          this.search();
+        }}
+        {...formResponsive.formItemLayout}
         onSubmit={this.handleSubmit}
       >
         <Row>
              {{#searchItems}}
-          <Col {...responsive}>
+          <Col {...formResponsive[Field.{{key}}]}>
             <Form.Item
               name={Field.{{key}}}
               className={styles.formItem}
@@ -124,9 +107,13 @@ class SearchView extends React.Component {
             </Form.Item>
           </Col>
           {{/searchItems}}
-          <Col {...responsive}>
+        </Row>
+            <Row className={styles.searchBtn}>
+        <Col {...formResponsive.responsive}>
             <Form.Item
-              {...formItemLayoutButton}
+              label="&nbsp;&nbsp;"
+              colon={false}
+              {...formResponsive.formItemLayout}
               className={styles.formItem}
             >
               <Button
@@ -137,8 +124,8 @@ class SearchView extends React.Component {
                 查询
               </Button>
               <Button
-              onClick={this.reset}
-              className={styles.reset}
+                onClick={this.reset}
+                className={styles.reset}
               >
                 重置
               </Button>

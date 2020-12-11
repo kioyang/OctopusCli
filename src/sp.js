@@ -48,6 +48,7 @@ class Generate {
             const copies = ['Table.less', 'TableListView.less', 'SearchView.less'];
             copies.forEach((item) => {
                 this.createFile({
+                    ...config,
                     dirName,
                     flowKey,
                     author,
@@ -57,10 +58,12 @@ class Generate {
                     filePath: `/src/pages/${dirName}/Table/${item}`,
                     templatePath: `/umi/UIViews/Table/${item}`,
                 });
-            })
+            });
+            this.generateDetail(config);
+            this.generateEdit(config);
 
             // this.createRouter(payload);
-            this.createMenu(config);
+            // this.createMenu(config);
             console.log('生成文件成功');
             const info = {
                 path: baseDir,
@@ -72,11 +75,667 @@ class Generate {
             error(e.stack);
         }
     };
+
+    generateEditModel = (config) => {
+        const { dirName, flowKey, author = 'kio', baseDir } = config;
+        let initData = { page: 1, pageSize: 10 };
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey: `${flowKey}Edit`,
+            author,
+            initData: this.decode(JSON.stringify(initData)),
+            date,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Edit/models/${flowKey}Edit.js`,
+            templatePath: '/umi/models/edit',
+        });
+    }
+
+    /**
+     * 增加选项
+     * @param {*} config 
+     */
+    mockTplEdit = (config) => {
+        const item = {};
+        const { tableColumns, flowKey, dirName, baseDir } = config;
+        const appendItems = [];
+        const listItems = tableColumns && tableColumns.map((option) => {
+            const field = option.key;
+            const type = option.type;
+            if(field) {
+            if (field.includes('status') || field.includes('Status')) {
+                return { key: type, create: '[0,1]', prop: `[\`\${Field.${field}}|+1\`]` }
+            }
+            if (field.includes('time') || field.includes('Time') || field.includes('date') || field.includes('Date')) {
+                return { key: type, create: '@date', prop: `[\`\${Field.${field}}\`]` };
+
+            }
+            if (field.includes('Num') || field.includes('Price') || field.includes('num') || field.includes('id') || field.includes('Id') || field.includes('number') || field.includes('code') || field.includes('Code') || field.includes('Number') || field.includes('Amount')) {
+                return { key: type, create: 1, prop: `[\`\${Field.${field}|+1}\`]` }
+            }
+        }
+        if(!field) {
+            return { key: type, create: '@cname', prop: `dddd` }
+        }
+            return { key: type, create: '@cname', prop: `[\`\${Field.${field}}\`]` }
+        });
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey: `${flowKey}Edit`,
+            sourcePath: baseDir,
+            filePath: `/mock/${flowKey}Edit.mock.js`,
+            templatePath: 'umi/mocktpl',
+            listItems,
+        });
+    }
+
+    generateApiConfigEdit = (config) => {
+        const { dirName, flowKey, author, baseDir } = config;
+        const { apiUrl = `${flowKey}Edit/list`,deleteUrl = `${flowKey}Edit/list`,detailUrl,editUrl } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey: `${flowKey}Edit`,
+            author,
+            date,
+            apiUrl: apiUrl,
+            deleteUrl,
+            detailUrl,
+            editUrl,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/services/${dirName}Edit/apiConfig.js`,
+            templatePath: '/umi/Service/edit/apiConfig',
+        });
+    }
+
+    generateUmiServiceEdit = (config) => {
+        const { dirName, flowKey, author, baseDir,detailUrl,editUrl } = config;
+        let initData = { page: 1, pageSize: 10 };
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey: `${flowKey}Edit`,
+            author,
+            detailUrl,editUrl,
+            initData: this.decode(JSON.stringify(initData)),
+            date,
+            sourcePath: baseDir,
+            company: company,
+            filePath: `/src/services/${dirName}Edit/index.js`,
+            templatePath: '/umi/Service/edit/index',
+        });
+    }
+
+    genreateFieldEdit = (config) => {
+        const { tableColumns, dirName, baseDir } = config;
+        this.createFile({
+            ...config,
+            dirName,
+            sourcePath: baseDir,
+            company: company,
+            templatePath: 'umi/UIViews/edit/Table/Field',
+            filePath: `/src/pages/${dirName}Edit/Table/Field.js`,
+            tableColumns,
+        });
+    }
+    generateTableIndexViewEdit = (config) => {
+        const { dirName, author = 'kio', baseDir,flowKey,detailUrl,editUrl } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            date,
+            editUrl,
+            detailUrl,
+            flowKey: `${flowKey}Edit`,
+            company: company,
+            templatePath: 'umi/UIViews/edit/Table/index',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Edit/Table/index.js`,
+        })
+    }
+    generateSearchViewEdit = (config) => {
+        const { author = 'kio', dirName, baseDir, tableColumns, flowKey } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        const searchItems = [];
+        const responsiveField = [];
+        tableColumns && tableColumns.forEach((item) => {
+            if (item.isInSearch) {
+                searchItems.push(item);
+                responsiveField.push({name: item.keyName,offset:0,field: item.key});
+            }
+        });
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            date,
+            flowKey: `${flowKey}Edit`,
+            company: company,
+            responsiveField,
+            typeFunc: function () {
+                var type = this.type || 'input';
+                var keyName = this.keyName;
+                var result = '<Input />';
+                switch (type) {
+                    case 'input':
+                        result = '<Input />';
+                        break;
+                    case 'datetime':
+                        result = '<DatePicker style={{width: "100%"}} />';
+                        break;
+                    case 'select':
+                        result = '<Select />';
+                        break;
+                    default:
+                        result = '<Date />';
+                }
+                if(keyName.includes('单据状态')) {
+                    result = '<BillstatusSelect />';
+                }
+                return result;
+            },
+            templatePath: 'umi/UIViews/edit/Table/SearchView',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Edit/Table/SearchView.js`,
+            searchItems,
+        });
+    }
+    generateTableViewEdit = (config) => {
+        const { flowKey, tableColumns, author, dirName, baseDir } = config;
+        const tableItems = [];
+        tableColumns.forEach((item) => {
+            if (item.isInTable) {
+                tableItems.push(item);
+            }
+        })
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            flowKey: `${flowKey}Edit`,
+            url: flowKey,
+            date,
+            widthFunc: function () {
+                const item = this;
+                let minWidth = +item.keyName.length * 30 || 40;
+                if (item.keyName.includes('日期') || item.keyName.includes('时间') || item.keyName.length < 3) {
+                    if (minWidth < 80) {
+                        minWidth = 120;
+                    }
+                }
+                if (item.keyName.includes('单据编号')) {
+                    minWidth = 180;
+                }
+                if(item.keyName.includes('备注')) {
+                    minWidth = 200;
+                }
+                if(item.keyName.includes('配送')) {
+                    minWidth = 200;
+                }
+                if(item.keyName.includes('名称')) {
+                    minWidth = 250;
+                }
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
+                    minWidth = 180;
+                }
+                if (item.keyName.includes('日')) {
+                    minWidth = 120;
+                }
+                if (item.keyName.includes('时间')) {
+                    minWidth = 180;
+                }
+                return minWidth;
+            },
+            fixFunc: function (index = 0) {
+                // console.log()
+                const item = this;
+                let shouldFix = false;
+                let countCol = tableColumns.length;
+                if (tableColumns.length > 12) {
+                    shouldFix = true;
+                    countCol = countCol - 12;
+                }
+                let fixString = '';
+                // if (shouldFix && index < countCol - 1) {
+                //     fixString = 'fixed:\'left\',';
+                // }
+                return fixString;
+            },
+            renderFunc: function () {
+                const item = this;
+                if (item.keyName.includes('单据状态')) {
+                    return '<BillStatus status={value} />';
+                }
+                if (item.keyName.includes('单据编号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+                return `<Ellipsis title={transformZero(value)}>
+                {transformZero(value)}
+              </Ellipsis>`
+            },
+            company: company,
+            templatePath: 'umi/UIViews/edit/Table/TableListView',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Edit/Table/TableListView.js`,
+            tableItems,
+        });
+    }
+
+    generateindetail = (config) => {
+        const { dirName, flowKey, author, baseDir } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey,
+            author,
+            date,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Detail/index.js`,
+            templatePath: '/umi/UIViews/detail/index',
+        });
+    }
+
+    generateinedit = (config) => {
+        const { dirName, flowKey, author = 'kio', baseDir } = config;
+        console.log(flowKey,'flowKey')
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey: `${flowKey}Edit`,
+            author,
+            date,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Edit/index.js`,
+            templatePath: '/umi/UIViews/edit/index',
+        });
+    }
+
+    generateEdit = (res) => {
+        const { dirName, flowKey, author, baseDir,editColumns = [],apiUrl,editUrl,detailUrl, parentRoute,detailColumns = []} = res;
+        const config = { dirName, flowKey, author, baseDir,tableColumns: editColumns,apiUrl,detailUrl,editUrl,parentRoute,detailColumns};
+        this.generateEditModel(config);
+        this.mockTplEdit(config);
+        this.generateApiConfigEdit(config);
+        this.generateUmiServiceEdit(config);
+        this.genreateFieldEdit(config);
+        this.generateTableIndexViewEdit(config);
+        this.generateSearchViewEdit(config);
+        this.generateTableViewEdit(config);
+        this.generateinedit(config);
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        const copies = [ 'TableListView.less', 'SearchView.less','OOMap'];
+        copies.forEach((item) => {
+            this.createFile({
+                ...config,
+                dirName,
+                flowKey,
+                author,
+                date,
+                company: company,
+                sourcePath: baseDir,
+                filePath: `/src/pages/${dirName}Edit/Table/${item}`,
+                templatePath: `/umi/UIViews/edit/Table/${item}`,
+            });
+        });
+        const formColumns = [];
+        const tColumns = [];
+        const tableColumns = editColumns;
+        for(let i = 0; i < tableColumns.length; i++) {
+            const item = tableColumns[i];
+            if(item.isInSearch) {
+                formColumns.push(item);
+            }
+            if(item.isInTable) {
+                tColumns.push(item)
+            }
+        }
+        const copie = ['ExpirationTimeField.js','index.js', 'index.less','ProductionTimeField.js','RemoteSelect.less','ScodeRemoteSelect.js','SnameRemoteSelect.js'];
+        copie.forEach((item) => {
+            this.createFile({
+                ...config,
+                dirName,
+                flowKey,
+                author,
+                date,
+                tableColumns: tColumns,
+                formColumns,
+                company: company,
+                sourcePath: baseDir,
+                filePath: `/src/pages/${dirName}Edit/Editables/${item}`,
+                templatePath: `/umi/UIViews/edit/Editables/${item}`,
+            });
+        });
+    }
+
+    generateDetail = (res) => {
+        const { dirName, flowKey, author, baseDir,detailColumns = [],detailUrl,editUrl,apiUrl,parentRoute } = res;
+        const config = { dirName, flowKey, author, baseDir,tableColumns: detailColumns,apiUrl,detailUrl,editUrl,parentRoute};
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.generateDetailModel(config);
+        this.mockTplDetail(config);
+        this.generateApiConfigDetail(config);
+        this.generateUmiServiceDetail(config);
+        this.genreateFieldDetail(config);
+        this.generateTableIndexViewDetail(config);
+        this.generateSearchViewDetail(config);
+        this.generateTableViewDetail(config);
+        this.generateindetail(config);
+        const copies = ['TableListView.less', 'SearchView.less','OOMap.js'];
+        const formColumns = [];
+        const tColumns = [];
+        const tableColumns = detailColumns;
+        for(let i = 0; i < tableColumns.length; i++) {
+            const item = tableColumns[i];
+            if(item.isInSearch) {
+                formColumns.push(item);
+            }
+            if(item.isInTable) {
+                tColumns.push(item)
+            }
+        }
+        copies.forEach((item) => {
+            this.createFile({
+                ...config,
+                dirName,
+                flowKey,
+                author,
+                date,
+                tableColumns: tColumns,
+                formColumns,
+                company: company,
+                sourcePath: baseDir,
+                filePath: `/src/pages/${dirName}Detail/Table/${item}`,
+                templatePath: `/umi/UIViews/detail/Table/${item}`,
+            });
+        });
+    }
+
+    generateDetailModel = (config) => {
+        const { dirName, flowKey, author = 'kio', baseDir,parentRoute } = config;
+        let initData = { page: 1, pageSize: 10 };
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey,
+            author,
+            initData: this.decode(JSON.stringify(initData)),
+            date,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Detail/models/${flowKey}Detail.js`,
+            templatePath: '/umi/models/detail',
+        });
+    }
+
+    /**
+     * 增加选项
+     * @param {*} config 
+     */
+    mockTplDetail = (config) => {
+        const item = {};
+        const { tableColumns, flowKey, dirName, baseDir } = config;
+        const appendItems = [];
+        const listItems = tableColumns && tableColumns.map((option) => {
+            const field = option.key;
+            const type = option.type;
+            if(field) {
+            if (field.includes('status') || field.includes('Status')) {
+                return { key: type, create: '[0,1]', prop: `[\`\${Field.${field}}|+1\`]` }
+            }
+            if (field.includes('time') || field.includes('Time') || field.includes('date') || field.includes('Date')) {
+                return { key: type, create: '@date', prop: `[\`\${Field.${field}}\`]` };
+
+            }
+            if (field.includes('Num') || field.includes('Price') || field.includes('num') || field.includes('id') || field.includes('Id') || field.includes('number') || field.includes('code') || field.includes('Code') || field.includes('Number') || field.includes('Amount')) {
+                return { key: type, create: 1, prop: `[\`\${Field.${field}|+1}\`]` }
+            }
+        }
+        if(!field) {
+            return { key: type, create: '@cname', prop: `dddd` }
+        }
+            return { key: type, create: '@cname', prop: `[\`\${Field.${field}}\`]` }
+        });
+        this.createFile({
+            ...config,
+            dirName: `${dirName}`,
+            flowKey: `${flowKey}Detail`,
+            sourcePath: baseDir,
+            filePath: `/mock/${flowKey}Detail.mock.js`,
+            templatePath: 'umi/mocktpl',
+            listItems,
+        });
+    }
+
+    generateApiConfigDetail = (config) => {
+        const { dirName, flowKey, author, baseDir } = config;
+        const { apiUrl = `${flowKey}Detail/list`,deleteUrl = `${flowKey}Detail/list`,detailUrl } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey,
+            author,
+            date,
+            apiUrl: apiUrl,
+            deleteUrl,
+            detailUrl,
+            company: company,
+            sourcePath: baseDir,
+            filePath: `/src/services/${dirName}Detail/apiConfig.js`,
+            templatePath: '/umi/Service/detail/apiConfig',
+        });
+    }
+
+    generateUmiServiceDetail = (config) => {
+        const { dirName, flowKey, author, baseDir } = config;
+        let initData = { page: 1, pageSize: 10 };
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            flowKey,
+            author,
+            initData: this.decode(JSON.stringify(initData)),
+            date,
+            sourcePath: baseDir,
+            company: company,
+            filePath: `/src/services/${dirName}Detail/index.js`,
+            templatePath: '/umi/Service/detail/index',
+        });
+    }
+
+    genreateFieldDetail = (config) => {
+        const { tableColumns, dirName, baseDir } = config;
+        this.createFile({
+            ...config,
+            dirName,
+            sourcePath: baseDir,
+            company: company,
+            templatePath: 'umi/UIViews/detail/Table/Field',
+            filePath: `/src/pages/${dirName}Detail/Table/Field.js`,
+            tableColumns,
+        });
+    }
+    generateTableIndexViewDetail = (config) => {
+        const { dirName, author, baseDir } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            date,
+            company: company,
+            templatePath: 'umi/UIViews/detail/Table/index',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Detail/Table/index.js`,
+        })
+    }
+    generateSearchViewDetail = (config) => {
+        const { author, dirName, baseDir, tableColumns, flowKey,detailUrl,editUrl } = config;
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        const searchItems = [];
+        const responsiveField = [];
+        tableColumns && tableColumns.forEach((item) => {
+            if (item.isInSearch) {
+                searchItems.push(item);
+                responsiveField.push({name: item.keyName,offset:0,field: item.key});
+            }
+        });
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            date,
+            flowKey,
+            detailUrl,
+            editUrl,
+            company: company,
+            responsiveField,
+            typeFunc: function () {
+                var type = this.type || 'input';
+                var keyName = this.keyName;
+                var result = '<Input disabled />';
+                switch (type) {
+                    case 'input':
+                        result = '<Input disabled />';
+                        break;
+                    case 'datetime':
+                        result = '<TimeField disabled />';
+                        break;
+                    case 'select':
+                        result = '<Select disabled />';
+                        break;
+                    default:
+                        result = '<Date disabled/>';
+                }
+                if(keyName.includes('单据状态')) {
+                    result = '<BillstatusSelect />';
+                }
+                return '<Input disabled />';
+            },
+            templatePath: 'umi/UIViews/detail/Table/SearchView',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Detail/Table/SearchView.js`,
+            searchItems,
+        });
+    }
+    generateTableViewDetail = (config) => {
+        const { flowKey, tableColumns, author, dirName, baseDir } = config;
+        const tableItems = [];
+        tableColumns.forEach((item) => {
+            if (item.isInTable) {
+                tableItems.push(item);
+            }
+        })
+        const date = moment().format('YYYY-MM-DD HH:mm');
+        this.createFile({
+            ...config,
+            dirName,
+            author,
+            flowKey,
+            date,
+            widthFunc: function () {
+                const item = this;
+                let minWidth = +item.keyName.length * 30 || 40;
+                if (item.keyName.includes('日期') || item.keyName.includes('时间') || item.keyName.length < 3) {
+                    if (minWidth < 80) {
+                        minWidth = 120;
+                    }
+                }
+                if (item.keyName.includes('单据编号')) {
+                    minWidth = 180;
+                }
+                if(item.keyName.includes('备注')) {
+                    minWidth = 200;
+                }
+                if(item.keyName.includes('名称')) {
+                    minWidth = 250;
+                }
+                if(item.keyName.includes('配送')) {
+                    minWidth = 200;
+                }
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
+                    minWidth = 180;
+                }
+                if (item.keyName.includes('日')) {
+                    minWidth = 120;
+                }
+                if (item.keyName.includes('时间')) {
+                    minWidth = 180;
+                }
+                return minWidth;
+            },
+            fixFunc: function (index = 0) {
+                // console.log()
+                const item = this;
+                let shouldFix = false;
+                let countCol = tableColumns.length;
+                if (tableColumns.length > 12) {
+                    shouldFix = true;
+                    countCol = countCol - 12;
+                }
+                let fixString = '';
+                // if (shouldFix && index < countCol - 1) {
+                //     fixString = 'fixed:\'left\',';
+                // }
+                return fixString;
+            },
+            renderFunc: function () {
+                const item = this;
+                if (item.keyName.includes('单据状态')) {
+                    return '<BillStatus status={value} />';
+                }
+                if (item.keyName.includes('单据编号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+                return `<Ellipsis title={transformZero(value)}>
+                {transformZero(value)}
+              </Ellipsis>`
+            },
+            company: company,
+            templatePath: 'umi/UIViews/detail/Table/TableListView',
+            sourcePath: baseDir,
+            filePath: `/src/pages/${dirName}Detail/Table/TableListView.js`,
+            tableItems,
+        });
+    }
+
     generateModel = (config) => {
         const { dirName, flowKey, author, baseDir } = config;
         let initData = { page: 1, pageSize: 10 };
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             flowKey,
             author,
@@ -93,6 +752,7 @@ class Generate {
         const { apiUrl = `${flowKey}/list`,deleteUrl = `${flowKey}/list` } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             flowKey,
             author,
@@ -110,6 +770,7 @@ class Generate {
         let initData = { page: 1, pageSize: 10 };
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             flowKey,
             author,
@@ -150,6 +811,7 @@ class Generate {
             }
         });
         this.createFile({
+            ...config,
             dirName,
             date,
             author,
@@ -309,6 +971,7 @@ class Generate {
         const { dirName, author, baseDir } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             author,
             date,
@@ -322,17 +985,21 @@ class Generate {
         const { author, dirName, baseDir, tableColumns, flowKey } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         const searchItems = [];
+        const responsiveField = [];
         tableColumns && tableColumns.forEach((item) => {
             if (item.isInSearch) {
                 searchItems.push(item);
+                responsiveField.push({name: item.keyName,offset:0,field: item.key});
             }
         });
         this.createFile({
+            ...config,
             dirName,
             author,
             date,
             flowKey,
             company: company,
+            responsiveField,
             typeFunc: function () {
                 var type = this.type || 'input';
                 var keyName = this.keyName;
@@ -371,6 +1038,7 @@ class Generate {
         })
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             author,
             flowKey,
@@ -391,6 +1059,18 @@ class Generate {
                 }
                 if(item.keyName.includes('配送')) {
                     minWidth = 200;
+                }
+                if(item.keyName.includes('名称')) {
+                    minWidth = 250;
+                }
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
+                    minWidth = 180;
+                }
+                if (item.keyName.includes('日')) {
+                    minWidth = 120;
+                }
+                if (item.keyName.includes('时间')) {
+                    minWidth = 180;
                 }
                 return minWidth;
             },
@@ -415,6 +1095,11 @@ class Generate {
                     return '<BillStatus status={value} />';
                 }
                 if (item.keyName.includes('单据编号')) {
+                    return `<Ellipsis title={transformZero(value)}>
+                    <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
+                  </Ellipsis>`
+                }
+                if (item.keyName.includes('单') && item.keyName.includes('号')) {
                     return `<Ellipsis title={transformZero(value)}>
                     <span style={{ fontWeight:'bold'}}>{transformZero(value)}</span>
                   </Ellipsis>`
@@ -490,6 +1175,7 @@ class Generate {
         const { dirName, flowKey, author, baseDir } = config;
         const date = moment().format('YYYY-MM-DD HH:mm');
         this.createFile({
+            ...config,
             dirName,
             flowKey,
             author,

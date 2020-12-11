@@ -12,19 +12,16 @@
 }
 
 .right {
-  display: flex;
   float: right;
   height: 48px;
   margin-left: auto;
   overflow: hidden;
   .action {
-    display: flex;
-    align-items: center;
     height: 100%;
     padding: 0 12px;
     cursor: pointer;
     transition: all 0.3s;
-    > span {
+    > span{
       vertical-align: middle;
     }
     &:hover {
@@ -34,19 +31,16 @@
       background: @pro-header-hover-bg;
     }
   }
-  .search {
-    padding: 0 12px;
-    &:hover {
-      background: transparent;
-    }
-  }
   .account {
     .avatar {
-      margin: ~'calc((@{layout-header-height} - 24px) / 2)' 0;
+      margin: ~'calc((@{layout-header-height} - 34px) / 2)' 0;
       margin-right: 8px;
       color: @primary-color;
       vertical-align: top;
       background: rgba(255, 255, 255, 0.85);
+    }
+    .avatar img { 
+      vertical-align: top;
     }
   }
 }

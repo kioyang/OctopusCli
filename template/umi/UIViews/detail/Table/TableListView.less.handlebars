@@ -1,0 +1,21 @@
+.tableView {
+    .tableContainer {
+        :global {
+            .ant-table-body {
+                max-height:1000px;
+                min-height: 300px;
+            }        }
+    }
+    .fixedTopLeft {
+        position: fixed;
+        top:10px;
+        left: calc(21% - 64px);
+        z-index: 99999999;
+    }
+    .btnGroup {
+        border:1px solid #111;
+        .add {
+            margin-right: 10px;
+        }
+    }
+}

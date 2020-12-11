@@ -5,10 +5,12 @@
  * For details, please see
  * https://pro.ant.design/docs/deploy
  */
+const target = 'http://192.168.0.95:8777'
+// const target = 'http://192.168.13.207:8777';
 export default {
   dev: {
-    '/api/': {
-      target: 'https://preview.pro.ant.design',
+    '/portal/': {
+      target,
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },

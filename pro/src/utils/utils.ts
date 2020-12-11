@@ -1,9 +1,18 @@
 import { parse } from 'querystring';
 import pathRegexp from 'path-to-regexp';
 import { Route } from '@/models/connect';
+import {DensityStyleMap} from '@/config/style';
 
 /* eslint no-useless-escape:0 import/prefer-default-export:0 */
 const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+(?::\d+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/;
+
+export const genTableHeight = (btnGroup:any,containerHeight:number = 700,density:any = 8): any => {
+  const style = DensityStyleMap[density];
+  let result = containerHeight;
+  const finalResult = result - style.gap * 2 - 38;
+  const obj = {scrollHeight:finalResult, gap: style.gap}
+  return obj;
+};
 
 export const isUrl = (path: string): boolean => reg.test(path);
 

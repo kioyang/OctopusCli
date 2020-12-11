@@ -1,0 +1,161 @@
+/**
+* @author kio-@haopengit.com
+* @date 2020-12-10 10:52
+*/
+
+import React from 'react'
+import { connect } from 'dva'
+import { Input, Form, Row, Col,DatePicker } from 'antd';
+import styles from './SearchView.less';
+import Field from './Field.js';
+
+import StoreHouseField from '@/components/widgets/StoreHouseField' // 库点
+import ConveyField from '@/components/widgets/ConveyField' // 配送方式
+import TimeField from '@/components/widgets/TimeField' // 时间
+import BillstatusSelect from '@/components/BillstatusSelect'  
+
+import { formMap } from './OOMap'
+import { OOMTransfer } from '@/utils/OOM'
+import { FormResponsive } from '@/config/style'
+
+import { detailService } from '@/services/InboundEdit'
+
+const ModeFunc = {
+  add: 'addInit',
+  edit: 'editInit'
+}
+const ResponsiveField ={
+}
+
+@connect()
+class SearchView extends React.Component {
+  static propTypes = {};
+
+  static defaultProps = {};
+
+  state = { initialValues: {}}
+  
+  // 离开页面时清空条件
+  componentWillUnmount() {
+    this.reset();
+  }
+  componentDidMount() {
+    const { match = {} } = this.props;
+    const { params = {}} = match;
+    const { id } = params;
+    const mode = id === 'add' ? 'add' : 'edit';
+    this[ModeFunc[mode]](id);
+  }
+
+  addInit = (id) => {
+    console.log('addinit',id)
+    this.getSnumber();
+  }
+
+  editInit = (id) => {
+    console.log('editinit',id);
+    this.getDetail({ id});
+  }
+
+
+  // 获取查询表单数据
+  getFormData() {
+    return this.form.validateFields();
+  }
+
+  // 获取单据编号
+
+  getSnumber = () => {
+    const that = this;
+    fetch('/portal/rs/outboundappointment/snumber', { method: 'POST'})
+    .then(response => response.json())
+    .then(body => {
+        const { content = {}} = body;
+        const snumber = content;
+        if(this.form) {
+        that.form.setFieldsValue({
+          snumber: snumber,
+        });
+      }
+    });
+}
+
+// 获取详情
+
+getDetail = (params) => {
+  detailService(params)
+  .then((res) => {
+    const { content = {}} = res;
+    const setValue = OOMTransfer(content,formMap);
+    this.form.setFieldsValue(setValue);
+    this.setState({
+      initialValues: setValue,
+    });
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'inboundEdit/addRows',
+      payload: {
+        addedRows: content && content.entryList || [],
+      }
+    })
+  })
+}
+
+
+  // 根据查询参数查询列表
+  search = () => {
+    this.getFormData()
+      .then((values) => {
+        const keys = Object.keys(values);
+        const newValues = {};
+        for (let i = 0; i < keys.length; i++) {
+          if (values[keys[i]] === '') {
+            newValues[keys[i]] = undefined;
+          } else {
+            newValues[keys[i]] = values[keys[i]];
+          }
+        }
+        this.getList({
+          current: 1,
+          pageSize: 10,
+          ...newValues,
+        });
+      })
+      .catch((errors) => {
+        // console.log(errors, 'formvalidate');
+      })
+
+  }
+
+  // 清空查询条件
+  reset = () => {
+    this.form.resetFields();
+    this.search();
+  }
+
+  render() {
+    const layout = window.innerWidth < 866 ? 'vertical' : 'horizontal';
+    const formResponsive = FormResponsive.generate({
+      rows:4,
+      fields: ResponsiveField,
+    })
+    const { initialValues = {}} = this.state;
+    return (
+       <Form
+          ref={(el) => {
+          this.form = el;
+          const { context } = this.props;
+          context.form = this;
+        }}
+        className={styles.searchForm}
+        layout={layout}
+        {...formResponsive.formItemLayout}
+        onSubmit={this.handleSubmit}
+      >
+        <Row>
+          </Row>
+      </Form>
+    );
+  }
+}
+export default SearchView;

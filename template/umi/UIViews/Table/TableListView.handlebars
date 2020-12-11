@@ -19,9 +19,12 @@ import Ellipsis from '@/components/Ellipsis'
 import BillStatus from '@/components/BillStatus';
 import AuthorizedButton from '@/components/AuthorizedButton';
 import AuthorizedDelete from '@/components/AuthorizedDelete';
-import { genHeight } from '@/utils/utils'
+import AuthorizedDetailButton from '@/components/AuthorizedDetailButton'
+import { genTableHeight } from '@/utils/utils'
+import { Link } from 'umi';
+import { pageSize as defaultPageSize } from '@/config/page'
 
-let pageSize = 20;
+let pageSize = defaultPageSize;
 
 export const Mode = {
   Default: '',
@@ -42,6 +45,7 @@ const ButtonGroup = Button.Group;
   return {
     list: {{flowKey}}.list,
     pagination: {{flowKey}}.pagination,
+     density:global.density || 8,
     loading: loading.effects['{{flowKey}}/fetch'] || false,
   };
 })
@@ -98,7 +102,7 @@ class TableListView extends React.Component {
       dataIndex: `operation`,
       key: `operation`,
       fixed: `right`,
-      width: 120,
+      width: 168,
       render: this.genOperations,
     }];
     return result;
@@ -130,7 +134,7 @@ class TableListView extends React.Component {
           pageSize,
         });
       } else {
-        message.error('删除失败，请重试');
+        message.error(res.msg || '删除失败，请重试');
       }
     })
     .catch(() => {
@@ -182,16 +186,27 @@ class TableListView extends React.Component {
     const style = { fontWeight: 'bold'};
     return (
       <>
-    <AuthorizedButton
+  <AuthorizedButton
           title='编辑'
-          permissions={[1, 3, 5]}
-          permissionKey={+record.billstatus}
+          permissions={[1]}
+          permissionKey={record.billstatus}
+          onClick={() => {
+            this.props.history.push(`/{{parentRoute}}/{{flowKey}}/${record.id}`);
+          }}
         />
-              <AuthorizedDelete
+        <AuthorizedDetailButton
+          title='详情'
+          permissions={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
+          permissionKey={record.billstatus}
+          onClick={() => {
+            this.props.history.push(`/{{parentRoute}}/{{flowKey}}/detail/${record.id}`);
+          }}
+        />
+        <AuthorizedDelete
           title='删除'
           record={record}
-          permissions={[1, 3, 5]}
-          permissionKey={+record.billstatus}
+          permissions={[1]}
+          permissionKey={record.billstatus}
           onClick={() => {
             this.delete(record.id);
           }}
@@ -220,49 +235,38 @@ class TableListView extends React.Component {
     return this;
   }
 
+    selectRow = (record) => {
+    const selectedRowKeys = [...this.state.selectedRowKeys];
+    if (selectedRowKeys.indexOf(record.id) >= 0) {
+      selectedRowKeys.splice(selectedRowKeys.indexOf(record.id), 1);
+    } else {
+      selectedRowKeys.push(record.id);
+    }
+    this.setState({ selectedRowKeys });
+  }
+
   render() {
-    const xWidth = this.columns.reduce((tol, item) => tol + item.width || 300, 0);
-    const height = genHeight(this.btnGroup);
-    const scroll = { x: xWidth, y: height };
+        const xWidth = this.columns.reduce((tol, item) => tol + item.width || 300, 0);
+    const { selectedRowKeys, showMode } = this.state;
+    const { containerHeight,density } = this.props;
+    const style = genTableHeight(this.btnGroup, containerHeight,density);
+    const scroll = { x: xWidth, y: style.scrollHeight };
+    const tableStyle = {height:containerHeight - style.gap};
     const { list = [], pagination = {}, loading } = this.props;
     const { total = 0 } = pagination;
-    const { selectedRowKeys, showMode } = this.state;
     const rowSelection = {
       selectedRowKeys,
       onChange: this.onSelectChange,
     };
     return (
-      <div className={styles.tableView}>
-        {showMode !== '' ? (
-          <EditorView
-            mode={showMode}
-            record={this.record}
-            onClose={isOkEvent => {
-              if (isOkEvent) {
-                // 如果点了确定按钮 刷新一下表格
-                this.getList({
-                  current: pagination.current,
-                  pageSize,
-                });
-              }
-              // 关闭编辑框
-              this.handleMode({
-                showMode: '',
-                record: { id: 0 },
-              });
-            }}
-          />
-        ) : null}
-        <div className={styles.btnGroup} ref={(el) => { this.btnGroup = el;}}>
+      <div className={styles.tableView} ref={(el) => { this.parent = el; }}>
+        <div className={styles.btnGroup} ref={(el) => { this.btnGroup = el; }}>
           <Button
             icon={<PlusOutlined />}
             type="primary"
             className={styles.add}
             onClick={() => {
-              this.handleMode({
-                showMode: Mode.Add,
-                record: { id: 0 },
-              });
+              this.props.history.push('/{{parentRoute}}/{{flowKey}}/add')
             }}
           >
             新增
@@ -282,10 +286,12 @@ class TableListView extends React.Component {
             <Button
               icon={<DeleteOutlined />}
               onClick={() => {
-                if(selectedRowKeys.length) {
+                if (selectedRowKeys.length) {
                   Modal.confirm({
                     title: '确认',
-                    content: `您确认删除id${selectedRowKeys}`,
+                    okText:'确定',
+                    cancelText: '取消',
+                    content: `您确认删除选中的数据吗`,
                     onOk: () => {
                       this.delete(selectedRowKeys.join(','));
                     },
@@ -301,8 +307,10 @@ class TableListView extends React.Component {
         <Table
           bordered
           loading={loading}
-          height={height}
           size="small"
+          className={styles.tableContainer}
+          rowClassName="normal-row"
+          style={tableStyle}
           dataSource={list}
           rowSelection={rowSelection}
           columns={this.columns}
@@ -310,6 +318,11 @@ class TableListView extends React.Component {
           rowKey={record => {
             return record.id;
           }}
+          onRow={(record) => ({
+            onClick: () => {
+              this.selectRow(record);
+            },
+          })}
           scroll={scroll}
           onChange={this.handleTableChange}
         />

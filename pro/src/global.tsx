@@ -1,10 +1,12 @@
 import { Button, message, notification } from 'antd';
 
 import React from 'react';
-import { useIntl } from 'umi';
+import { useIntl,setLocale } from 'umi';
 import defaultSettings from '../config/defaultSettings';
 
 const { pwa } = defaultSettings;
+
+setLocale('zh-CN', true);
 
 // if pwa is true
 if (pwa) {

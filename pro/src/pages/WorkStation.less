@@ -1,0 +1,80 @@
+.workstationwrapper {
+    width:100%;
+    height: 100vh;
+    overflow:hidden;
+    box-sizing: border-box;
+    background:url('/enterbg.png') no-repeat;
+    background-size: 100% 100%;
+    opacity: 1;
+}
+.workstation {
+    width:100%;
+    height: 100vh;
+    overflow:hidden;
+    position:fixed;
+    top:0;
+    left:0;
+    .topmenu {
+        height: 64px;
+        width:90%;
+        margin:0 auto;
+        box-sizing: border-box;
+        display:flex;
+        justify-content: center;
+        align-items: center;
+        .left {
+            width:50%;
+            h1 {
+                padding-top: 20px;
+                font-size: 18px;
+                margin-left: 10px;
+                color:#111;
+                font-weight: bold;
+            }
+        }
+        .right {
+            width:50%;
+            ul {
+                margin-right: 10px;
+            }
+            ul li {
+                color:#111;
+                float:right;
+            }
+        }
+    }
+    .entry {
+        height: calc(100vh - 100px - 10px);
+        box-sizing: border-box;
+        .entryContent {
+            width: 80%;
+            padding-top: 50px;
+            height: calc(100vh - 100px - 10px);
+            overflow: auto;
+            margin: 0 auto;
+            .entrycard {
+                cursor: pointer;
+                ::-webkit-scrollbar {
+                    width:0;
+                    height:0;
+                }
+                width:100%;
+                text-align: center;
+                position:relative;
+                margin-top: 10px;
+                h2 {
+                    position:absolute;
+                    bottom:5px;
+                    left:0;
+                    text-align: center;
+                    width:100%;
+                    height: 20px;
+                    color:#111;
+                }
+            }
+        }
+    }
+    .footer {
+        height: 40px;
+    }
+}

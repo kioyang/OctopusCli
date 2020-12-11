@@ -1,0 +1,202 @@
+/**
+* 定义组件列表界面。
+* @author -@haopengit.com
+* @date 2020-11-30 17:27
+*/
+import React from 'react';
+import { Table, Button, Tabs } from 'antd';
+import {
+  ReloadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
+
+import { connect } from 'dva';
+import styles from './TableListView.less';
+import Ellipsis from '@/components/Ellipsis';
+import AuthorizedDelete from '@/components/AuthorizedDelete';
+import { genTableHeight } from '@/utils/utils';
+import { pageSize as defaultPageSize } from '@/config/page'
+import BillStatus from '@/components/BillStatus'
+
+const { TabPane } = Tabs;
+
+let pageSize = defaultPageSize;
+
+export const Mode = {
+  Default: '',
+  Add: 'add',
+  Edit: 'edit',
+};
+
+const transformZero = (value) => {
+  if (value === 0) {
+    // 这里只是用于展示， 可以直接返回字符串0
+    return 0;
+  }
+  return value || '';
+};
+const ButtonGroup = Button.Group;
+
+@connect(({ batchStockDetail, loading, global }) => {
+  return {
+    list: batchStockDetail.detailList,
+    density: global.density,
+    pagination: batchStockDetail.pagination,
+    loading: loading.effects['batchStockDetail/fetch'] || false,
+  };
+})
+class TableListView extends React.Component {
+  static propTypes = {};
+
+  static defaultProps = {};
+
+  // 初始化默认状态, 事件处理器绑定上下文
+  constructor(props) {
+    super(props);
+    // 初始化状态
+    this.state = {
+      selectedRowKeys: [],
+    };
+    // 事件处理器绑定上下文
+    this.genOperations = this.genOperations.bind(this);
+  }
+
+  componentWillUnmount() {
+    this.clear();
+  }
+
+   get columns() {
+    const result = [
+    ];
+    return result;
+  }
+
+  onSelectChange = (selectedRowKeys) => {
+    this.setState({ selectedRowKeys });
+  };
+
+  getList(query) {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'batchStockDetail/fetch',
+      payload: query,
+    });
+  }
+
+  // 筛选条件
+  handleTableChange = (pagination, filters, sorter) => {
+    pageSize = pagination.pageSize;
+    const keys = Object.keys(filters);
+    const params = {
+      current: pagination.current,
+      pageSize,
+    };
+    keys.forEach((item) => {
+      if (filters[item] && filters[item].length) {
+        params[item] = JSON.stringify(filters[item]);
+      }
+    });
+    if (sorter.field) {
+      params[sorter.field] = sorter.order === 'ascend' ? 'asc' : 'desc';
+    }
+    this.getList(params);
+  };
+
+  clear() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'batchStock/clear',
+    });
+  }
+
+  // 生成操作栏按钮
+  genOperations(text, record) {
+    const style = { fontWeight: 'bold' };
+    return (
+      <>
+        <AuthorizedDelete
+          title='删除'
+          record={record}
+          permissions={[1, 3, 5]}
+          permissionKey={record.billstatus}
+          onClick={() => {
+            this.delete(record.id);
+          }}
+        />
+      </>
+    );
+  }
+
+  // 生成分页配置
+  genPagination(total = 0) {
+    const { pagination, list=[] } = this.props;
+    return {
+      total: list.length,
+      pageSize,
+      current: pagination.current,
+      onChange: page => {
+        this.getList({
+          current: page,
+          pageSize,
+        });
+      },
+    };
+  }
+
+  handleBatchOperation() {
+    return this;
+  }
+
+  render() {
+    const xWidth = this.columns.reduce((tol, item) => tol + item.width || 300, 0);
+    const { list = [], pagination = {}, loading, containerHeight, density } = this.props;
+    const style = genTableHeight(this.btnGroup, containerHeight, density);
+    const scroll = { x: xWidth, y: style.scrollHeight - 20 };
+    const { total = 0 } = pagination;
+    const tableStyle = {height: containerHeight - style.gap};
+    const { selectedRowKeys, showMode } = this.state;
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: this.onSelectChange,
+    };
+    return (
+      <div className={styles.tableView}>
+        <div className={styles.fixedTopLeft}>
+          <Button
+            type="primary"
+            className={styles.btn}
+            style={ {marginBottom: 10} }
+            onClick={() => {
+              this.props.history.push('/&#x2F;portal&#x2F;rs&#x2F;stock&#x2F;queryStockInfo/batchStock')
+            }}
+          >返回</Button>
+          <br />
+        </div> 
+        <Tabs defaultActiveKey="1">
+          <TabPane key='1' tab="tab1">
+            <Table
+              bordered
+              loading={loading}
+              className={styles.tableContainer}
+              style={tableStyle}
+              size="small"
+              dataSource={list}
+              // rowSelection={rowSelection}
+              columns={this.columns}
+              pagination={this.genPagination(total)}
+              rowKey={record => {
+                return record.id;
+              }}
+              context={this.props.context}
+              scroll={scroll}
+              onChange={this.handleTableChange}
+            />
+          </TabPane>
+        </Tabs>
+      </div>
+    );
+  }
+}
+
+export default TableListView;
